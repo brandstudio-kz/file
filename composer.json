@@ -1,0 +1,44 @@
+{
+    "name": "brandstudio/file",
+    "description": "BrandStudio file setter",
+    "keywords": [
+        "Brandstudio"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/brandstudio-kz/file",
+    "authors": [
+        {
+            "name": "Nurdaulet",
+            "email": "nurik9293709@gmail.com",
+            "homepage": "https://sarsenovz2z.github.io/",
+            "role": "Developer"
+        },
+        {
+            "name": "Nurlan",
+            "email": "nurlan.bboy@gmail.com",
+            "homepage": "https://nurlanrazak.github.io",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+
+    },
+    "autoload": {
+        "psr-4": {
+            "BrandStudio\\File\\": "src"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BrandStudio\\File\\FileServiceProvider"
+            ]
+        }
+    }
+}
