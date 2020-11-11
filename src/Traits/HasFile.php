@@ -110,7 +110,7 @@ trait HasFile
         }
 
         $file = str_replace(config('app.url').'/storage', '', $file);
-        $webp = explode('.', $file)[0].'webp';
+        $webp = explode('.', $file)[0].'.webp';
 
         if (Storage::disk($this->getDisk())->exists($file)) {
             Storage::disk($this->getDisk())->delete($file);
