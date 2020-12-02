@@ -53,35 +53,52 @@ trait HasFile
 
         foreach($new as $index => $value) {
             if (is_string($value) && Str::startsWith($value, 'data:image')) {
-                $image = $this->base64ToImage($value)->encode('png');
-                $extension = explode('/', $image->mime)[1] ?? 'png';
-
-                $filename = uniqid($field);
-
-                if ($extension != 'webp' && $this->shouldSaveWebp($field)) {
-                    try {
-                        $webp = $this->base64ToImage($value)->encode('webp');
-                        $this->storeImage($webp, "{$filename}.webp");
-                    } catch (\Exception $e) {
-                        //
-                    }
-                }
-
-                $new[$index] = $this->storeImage($image, "$filename.{$extension}");
+                $new[$index] = $this->getImageFromString($field, $value, $field);
             } else if ($value instanceof \Illuminate\Http\UploadedFile) {
-                $path = Storage::disk($this->getDisk())->put(strtolower(class_basename(static::class)), $value);
-                $news[$index] = Storage::disk($this->getDisk())->url($path);
+                $new[$index] = $this->getImageFromUploadedFile($field, $value, $field);
             }
         }
 
         return $multiple ? array_filter($new) : ($new[0] ?? null);
     }
 
-    protected function storeFile($file, string $filename, $path = null)
+    protected function getImageFromString(string $field, string $value, $path = null)
     {
-        $destination_path = implode('/', array_filter([strtolower(class_basename(static::class)), $path, $filename]));
+        $image = $this->base64ToImage($value)->encode('png');
+        $extension = explode('/', $image->mime)[1] ?? 'png';
 
-        // TODO: set file
+        $filename = $this->getFileName();
+
+        if ($extension != 'webp' && $this->shouldSaveWebp($field)) {
+            try {
+                $webp = $this->base64ToImage($value)->encode('webp');
+                $this->storeImage($webp, "{$filename}.webp", $path);
+            } catch (\Exception $e) {
+                //
+            }
+        }
+
+        return $this->storeImage($image, "$filename.{$extension}", $path);
+    }
+
+    protected function getImageFromUploadedFile(string $field, $file, $path = null)
+    {
+        $destination_path = implode('/', array_filter([strtolower(class_basename(static::class)), $path]));
+
+        $image_path = Storage::disk($this->getDisk())->put($destination_path, $file);
+
+        if ($file->extension() != 'webp' && $this->shouldSaveWebp($field)) {
+            try {
+                $image = Image::make($file);
+                $webp = $image->encode('webp');
+                $filename = explode('.', basename($image_path))[0].'.webp';
+                $this->storeImage($webp, $filename, $path);
+            } catch(\Exception $e) {
+                //
+            }
+        }
+
+        return Storage::disk($this->getDisk())->url($image_path);
     }
 
     protected function storeImage($image, string $filename, $path = null)
@@ -98,9 +115,9 @@ trait HasFile
         return Image::make($value);
     }
 
-    protected function getFileName(string $field) : string
+    protected function getFileName() : string
     {
-        return $field;
+        return uniqid();
     }
 
     protected function deleteImage($file)
